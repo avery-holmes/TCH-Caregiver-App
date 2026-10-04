@@ -1,4 +1,4 @@
-# TCH — Technology for Caregivers in the Home
+# TCH — Technology for Caregivers at Home
 
 TCH is a **React Native / TypeScript caregiver-coordination prototype** originally built for WVU SENG 564 (Software Engineering of Mobile Applications). This repository is a portfolio-safe snapshot of that classroom MVP and the starting point for continued product engineering.
 
@@ -15,6 +15,20 @@ TCH is a **React Native / TypeScript caregiver-coordination prototype** original
 - product roadmap and tier concepts for future releases
 
 All data committed to this repository is **synthetic demonstration data**. Personal demo data and images from the classroom build are intentionally excluded.
+
+## Screenshots
+
+| Home care flow | Quick actions |
+| --- | --- |
+| ![TCH home care flow](docs/screenshots/home-care-flow.jpg) | ![TCH quick actions](docs/screenshots/quick-actions.jpg) |
+
+| Log care | Activity history |
+| --- | --- |
+| ![TCH log care form](docs/screenshots/log-care.jpg) | ![TCH activity history](docs/screenshots/activity-history.jpg) |
+
+### Product roadmap
+
+![TCH product roadmap](docs/screenshots/roadmap.jpg)
 
 ## Tech stack
 
