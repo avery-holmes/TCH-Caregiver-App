@@ -1,3 +1,4 @@
+import type { CareEvent } from "@/domain/careEvent";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker, {
   type DateTimePickerEvent,
@@ -32,15 +33,6 @@ type AppTab = "home" | "activity" | "log" | "roadmap" | "plans";
 
 const TAB_ORDER: AppTab[] = ["home", "activity", "log", "roadmap", "plans"];
 const LOOPED_TABS: AppTab[] = [...TAB_ORDER, ...TAB_ORDER, ...TAB_ORDER];
-
-type CareEvent = {
-  id: number;
-  type: string;
-  time: string;
-  details: string;
-  caregiver: string;
-  date: string;
-};
 
 type MedicationOption = {
   name: string;
