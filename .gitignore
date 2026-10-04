@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# Expo / build output
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Generated native folders
+/ios/
+/android/
+.kotlin/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.p8
+*.p12
+*.pem
+*.key
+*.mobileprovision
+*.der
+*service-account*.json
+*credentials*.json
+
+# TypeScript / Metro / logs
+*.tsbuildinfo
+.metro-health-check*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+
+# Local tooling / editor state
+.claude/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local archives / packaging artifacts
+*.zip
+*.tar.gz
