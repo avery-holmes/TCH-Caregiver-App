@@ -1,3 +1,4 @@
+import { medicationOptions } from "@/data/demoCarePlan";
 import type { CareEvent } from "@/domain/careEvent";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker, {
@@ -34,18 +35,7 @@ type AppTab = "home" | "activity" | "log" | "roadmap" | "plans";
 const TAB_ORDER: AppTab[] = ["home", "activity", "log", "roadmap", "plans"];
 const LOOPED_TABS: AppTab[] = [...TAB_ORDER, ...TAB_ORDER, ...TAB_ORDER];
 
-type MedicationOption = {
-  name: string;
-  morningDose: string;
-  eveningDose: string;
-};
-
 const STORAGE_KEY = "@tch_care_events";
-const medicationOptions: MedicationOption[] = [
-  { name: "Medication A", morningDose: "Demo AM dose", eveningDose: "Demo PM dose" },
-  { name: "Medication B", morningDose: "Demo AM dose", eveningDose: "Demo PM dose" },
-  { name: "Medication C", morningDose: "Demo AM dose", eveningDose: "Demo PM dose" },
-];
 
 const eventTypes = [
   "Feeding",
