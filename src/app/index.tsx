@@ -1,15 +1,7 @@
-import {
-  roadmapPhases,
-  subscriptionTiers,
-} from "@/data/productRoadmap";
-import { medicationOptions } from "@/data/demoCarePlan";
-import type { CareEvent } from "@/domain/careEvent";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { eventMeta, eventTypes } from "@/data/careEventCatalog";
 import {
   ActivityIndicator,
   Alert,
@@ -35,12 +27,22 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+import { eventMeta, eventTypes } from "@/data/careEventCatalog";
+import { medicationOptions } from "@/data/demoCarePlan";
+import {
+  roadmapPhases,
+  subscriptionTiers,
+} from "@/data/productRoadmap";
+import {
+  loadCareEvents,
+  saveCareEvents,
+} from "@/data/storage/careEventRepository";
+import type { CareEvent } from "@/domain/careEvent";
+
 type AppTab = "home" | "activity" | "log" | "roadmap" | "plans";
 
 const TAB_ORDER: AppTab[] = ["home", "activity", "log", "roadmap", "plans"];
 const LOOPED_TABS: AppTab[] = [...TAB_ORDER, ...TAB_ORDER, ...TAB_ORDER];
-
-const STORAGE_KEY = "@tch_care_events";
 
 const getDateKey = (date = new Date()) => {
   const year = date.getFullYear();
@@ -147,10 +149,9 @@ export default function HomeScreen() {
   useEffect(() => {
     async function loadSavedEvents() {
       try {
-        const savedEvents = await AsyncStorage.getItem(STORAGE_KEY);
+        const savedEvents = await loadCareEvents();
         if (savedEvents) {
-          const parsedEvents: CareEvent[] = JSON.parse(savedEvents);
-          setEvents(normalizeLegacyEventDates(parsedEvents));
+          setEvents(normalizeLegacyEventDates(savedEvents));
         }
       } catch (error) {
         console.error("Unable to load saved care events:", error);
@@ -169,7 +170,7 @@ export default function HomeScreen() {
 
     async function saveEvents() {
       try {
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+        await saveCareEvents(events);
       } catch (error) {
         console.error("Unable to save care events:", error);
       }
@@ -433,9 +434,10 @@ export default function HomeScreen() {
     });
 
     try {
-      const savedEvents = await AsyncStorage.getItem(STORAGE_KEY);
+      const savedEvents = await loadCareEvents();
+
       const refreshedEvents = savedEvents
-        ? normalizeLegacyEventDates(JSON.parse(savedEvents) as CareEvent[])
+        ? normalizeLegacyEventDates(savedEvents)
         : events;
 
       await new Promise((resolve) => setTimeout(resolve, 650));
