@@ -2,6 +2,7 @@ import {
   dateFromKey,
   getDateKey,
   getTodayKey,
+  normalizeLegacyEventDates,
   shiftDate,
 } from "@/utils/dateUtils";
 import DateTimePicker, {
@@ -49,19 +50,6 @@ type AppTab = "home" | "activity" | "log" | "roadmap" | "plans";
 
 const TAB_ORDER: AppTab[] = ["home", "activity", "log", "roadmap", "plans"];
 const LOOPED_TABS: AppTab[] = [...TAB_ORDER, ...TAB_ORDER, ...TAB_ORDER];
-
-const normalizeLegacyEventDates = (items: CareEvent[]) => {
-  const localToday = getTodayKey();
-  const legacyUtcToday = new Date().toISOString().slice(0, 10);
-
-  if (legacyUtcToday === localToday) {
-    return items;
-  }
-
-  return items.map((item) =>
-    item.date === legacyUtcToday ? { ...item, date: localToday } : item
-  );
-};
 
 const initialEvents: CareEvent[] = [
   {

@@ -1,3 +1,5 @@
+import type { CareEvent } from "@/domain/careEvent";
+
 export function getDateKey(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -21,4 +23,17 @@ export function shiftDate(date: Date, amount: number) {
   shifted.setDate(shifted.getDate() + amount);
 
   return shifted;
+}
+
+export function normalizeLegacyEventDates(items: CareEvent[]) {
+  const localToday = getTodayKey();
+  const legacyUtcToday = new Date().toISOString().slice(0, 10);
+
+  if (legacyUtcToday === localToday) {
+    return items;
+  }
+
+  return items.map((item) =>
+    item.date === legacyUtcToday ? { ...item, date: localToday } : item
+  );
 }
