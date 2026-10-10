@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   typecheck:
-    name: TypeScript Check
+    name: TypeScript and Jest Checks
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -27,3 +27,6 @@ jobs:
 
       - name: Type-check
         run: npm run typecheck
+
+      - name: Run unit tests
+        run: npm test -- --ci --runInBand
