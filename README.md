@@ -58,6 +58,18 @@ npm run web
 npm run typecheck
 ```
 
+## Testing
+
+Run the unit tests with one command:
+
+```bash
+npm test -- --runInBand
+```
+
+The Jest suite uses the `jest-expo` preset and covers date formatting, date shifting, legacy UTC-to-local date normalization, and the care-event persistence boundary. Date-normalization tests control the clock and simulate local calendar dates so they are independent of the machine's timezone. Persistence tests mock AsyncStorage and cover missing data, saved and empty event lists, serialization, malformed JSON, and storage read/write failures.
+
+Run TypeScript checking separately with `npm run typecheck`. GitHub Actions runs both type-checking and `npm test -- --ci --runInBand` on pushes to `main` and pull requests targeting `main`.
+
 ## Current architecture
 
 The classroom MVP intentionally optimized for shipping a working mobile prototype quickly. Most product behavior currently lives in `src/app/index.tsx`, including navigation state, care-event state, persistence, forms, calendar behavior, roadmap content, and styling.
