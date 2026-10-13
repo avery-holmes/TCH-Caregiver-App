@@ -22,9 +22,15 @@ Care events are serialized to AsyncStorage under a local application key. The co
 
 The current source implements care-event forms, activity history, a calendar view, responsive phone/tablet layout behavior, roadmap/plans screens, and lightweight animation.
 
-## Known architectural debt
+## Incremental feature modularization
 
-`src/app/index.tsx` is intentionally large because the course project prioritized delivering a complete working prototype. For continued development, the major concern is separation of responsibilities rather than adding more features to this file.
+The initial classroom app was a 4,186-line `src/app/index.tsx` combining styling, rendering, state and domain rules. The current refactor moves the shared stylesheet, roadmap screen, plans screen, activity event card, and care-flow calculation out into feature-specific modules. This reduces the app shell to about 1,984 lines **without changing care-event persistence or the core user workflow**.
+
+The care-flow builder is now a pure `buildCareFlow(todayEvents)` function with Jest coverage for empty, partial, complete and evening-only logs. Its current status flags are inferred from logged events; they must **not** be interpreted as clinically verified medication administrations or pump-resets.
+
+## Remaining architectural debt
+
+The main screen still owns state orchestration, activity/calendar rendering, form state and validation, profile rendering, and a large care-entry form. The shared stylesheet also needs further decomposition into co-located feature styles. These should be split incrementally, with a smoke test and preserved behavior at each step; do not attempt a full rewrite at once.
 
 ## Target direction
 
@@ -33,21 +39,20 @@ A reasonable next decomposition is:
 ```text
 src/
   app/
-  components/
+  app/               # Expo Router shell and remaining orchestration
   features/
-    care-events/
-    activity/
-    calendar/
-    profiles/
-    plans/
+    activity/          # reusable CareEventCard
+    care-flow/         # pure, tested buildCareFlow
+    plans/             # PlansScreen
+    roadmap/           # RoadmapScreen
+    care-events/       # next: care-event logging feature
+    calendar/          # next: activity calendar
+    profiles/          # next: profile header
   data/
-    storage/
-    repositories/
-  domain/
-    models/
-    validation/
-  hooks/
-  theme/
+    storage/           # careEventRepository and AsyncStorage
+  domain/              # CareEvent type and medication types
+  theme/               # shared appStyles; split further later
+  utils/
 ```
 
 The goal is to separate UI, domain rules, persistence, and future network concerns so each can be tested and evolved independently.
