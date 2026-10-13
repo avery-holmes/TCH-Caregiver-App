@@ -35,10 +35,8 @@ import Animated, {
 
 import { eventMeta, eventTypes } from "@/data/careEventCatalog";
 import { medicationOptions } from "@/data/demoCarePlan";
-import {
-  roadmapPhases,
-  subscriptionTiers,
-} from "@/data/productRoadmap";
+import { RoadmapScreen } from "@/features/roadmap/RoadmapScreen";
+import { PlansScreen } from "@/features/plans/PlansScreen";
 import {
   loadCareEvents,
   saveCareEvents,
@@ -1899,198 +1897,7 @@ export default function HomeScreen() {
     );
   }
 
-  function renderRoadmap() {
-    return (
-      <ScrollView
-        contentContainerStyle={pageContentStyle}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.pageTitleRow}>
-          <View>
-            <Text style={styles.sectionEyebrow}>WHAT'S NEXT</Text>
-            <Text style={styles.pageTitle}>Roadmap</Text>
-          </View>
-        </View>
 
-        <View style={styles.roadmapIntroCard}>
-          <Text style={styles.roadmapIntroTitle}>
-            Growing with the family's care needs
-          </Text>
-          <Text style={styles.roadmapIntroBody}>
-            TCH starts simple and adds collaboration, clinical connectivity,
-            connected devices, and intelligent support over time.
-          </Text>
-        </View>
-
-
-        {roadmapPhases.map((phase, index) => (
-          <Animated.View
-            key={phase.version}
-            entering={FadeInDown.delay(index * 45).duration(240)}
-            style={styles.roadmapStep}
-          >
-            <View style={styles.roadmapRail}>
-              <View
-                style={[
-                  styles.roadmapDot,
-                  { backgroundColor: phase.accent },
-                ]}
-              />
-              {index < roadmapPhases.length - 1 && (
-                <View style={styles.roadmapLine} />
-              )}
-            </View>
-
-            <View
-              style={[
-                styles.roadmapCard,
-                { backgroundColor: phase.tint },
-              ]}
-            >
-              <View style={styles.roadmapVersionRow}>
-                <Text
-                  style={[
-                    styles.roadmapVersion,
-                    { color: phase.accent },
-                  ]}
-                >
-                  {phase.version}
-                </Text>
-
-                <Text
-                  style={[
-                    styles.roadmapPhase,
-                    { color: phase.accent },
-                  ]}
-                >
-                  {phase.phase}
-                </Text>
-              </View>
-
-              <Text style={styles.roadmapTitle}>{phase.title}</Text>
-
-              <View style={styles.roadmapHighlights}>
-                {phase.highlights.map((highlight) => (
-                  <View key={highlight} style={styles.roadmapHighlightRow}>
-                    <View
-                      style={[
-                        styles.roadmapHighlightDot,
-                        { backgroundColor: phase.accent },
-                      ]}
-                    />
-                    <Text style={styles.roadmapHighlightText}>
-                      {highlight}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          </Animated.View>
-        ))}
-      </ScrollView>
-    );
-  }
-
-  function renderPlans() {
-    return (
-      <ScrollView
-        contentContainerStyle={pageContentStyle}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.pageTitleRow}>
-          <View>
-            <Text style={styles.sectionEyebrow}>SUBSCRIPTION CONCEPT</Text>
-            <Text style={styles.pageTitle}>Plans</Text>
-          </View>
-        </View>
-
-        <View style={styles.conceptBanner}>
-          <Text style={styles.conceptBannerTitle}>
-            Illustrative demo pricing
-          </Text>
-          <Text style={styles.conceptBannerBody}>
-            The tiers show how product capability could scale with technical complexity.
-          </Text>
-        </View>
-
-        {subscriptionTiers.map((tier, index) => (
-          <Animated.View
-            key={tier.name}
-            entering={FadeInDown.delay(index * 70).duration(260)}
-            style={[
-              styles.planTierCard,
-              index === 1 && styles.featuredTierCard,
-            ]}
-          >
-            <View style={styles.tierHeader}>
-              <View>
-                <View
-                  style={[
-                    styles.tierNameBadge,
-                    { backgroundColor: tier.tint },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.tierNameText,
-                      { color: tier.accent },
-                    ]}
-                  >
-                    {tier.name}
-                  </Text>
-                </View>
-
-                {index === 1 && (
-                  <Text style={styles.recommendedText}>DEMO RECOMMENDED</Text>
-                )}
-              </View>
-
-              <View style={styles.priceWrap}>
-                <Text
-                  style={[
-                    styles.priceText,
-                    { color: tier.accent },
-                  ]}
-                >
-                  {tier.price}
-                </Text>
-                <Text style={styles.priceCadence}>{tier.cadence}</Text>
-              </View>
-            </View>
-
-            <Text style={styles.tierDescription}>
-              {tier.description}
-            </Text>
-
-            {tier.features.map((feature) => (
-              <View key={feature} style={styles.featureListRow}>
-                <Text
-                  style={[
-                    styles.featureCheck,
-                    { color: tier.accent },
-                  ]}
-                >
-                  ✓
-                </Text>
-                <Text style={styles.featureListText}>{feature}</Text>
-              </View>
-            ))}
-          </Animated.View>
-        ))}
-
-        <View style={styles.clinicalNote}>
-          <Text style={styles.clinicalNoteTitle}>
-            Clinical-tier implementation
-          </Text>
-          <Text style={styles.clinicalNoteBody}>
-            Real EHR connectivity and provider communication would require
-            authorized integrations, privacy/security controls, consent,
-            compliance review, and participating clinical systems.
-          </Text>
-        </View>
-      </ScrollView>
-    );
-  }
 
   function renderTab(tab: AppTab) {
     switch (tab) {
@@ -2099,9 +1906,9 @@ export default function HomeScreen() {
       case "log":
         return renderLog();
       case "roadmap":
-        return renderRoadmap();
+        return <RoadmapScreen contentContainerStyle={pageContentStyle} />;
       case "plans":
-        return renderPlans();
+        return <PlansScreen contentContainerStyle={pageContentStyle} />;
       default:
         return renderHome();
     }
