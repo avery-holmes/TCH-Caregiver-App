@@ -43,6 +43,7 @@ import {
 } from "@/data/storage/careEventRepository";
 import type { CareEvent } from "@/domain/careEvent";
 import { styles } from "@/theme/appStyles";
+import { buildCareFlow } from "@/features/care-flow/buildCareFlow";
 
 type AppTab = "home" | "activity" | "log" | "roadmap" | "plans";
 
@@ -221,102 +222,7 @@ export default function HomeScreen() {
       ? selectedMedicationOption?.morningDose ?? ""
       : selectedMedicationOption?.eveningDose ?? "";
 
-  const feedingEventsToday = useMemo(
-    () => todayEvents.filter((event) => event.type === "Feeding"),
-    [todayEvents]
-  );
-
-  const morningMedicationComplete = useMemo(
-    () =>
-      todayEvents.some(
-        (event) =>
-          event.type === "Medication" &&
-          /morning/i.test(event.details)
-      ),
-    [todayEvents]
-  );
-
-  const eveningMedicationComplete = useMemo(
-    () =>
-      todayEvents.some(
-        (event) =>
-          event.type === "Medication" &&
-          /evening/i.test(event.details)
-      ),
-    [todayEvents]
-  );
-
-  const careFlow = useMemo(() => {
-    const baseItems = [
-      {
-        id: "pump-setup",
-        type: "Feeding",
-        title: "Morning pump reset",
-        timing: "Start of day",
-        complete: feedingEventsToday.length > 0,
-        progressText:
-          feedingEventsToday.length > 0
-            ? "Pump routine started"
-            : "Reset volume total before first feeding",
-      },
-      {
-        id: "morning-medications",
-        type: "Medication",
-        title: "Morning medications",
-        timing: "Morning",
-        complete: morningMedicationComplete,
-        progressText: morningMedicationComplete
-          ? "Logged"
-          : "Not logged yet",
-      },
-      {
-        id: "feeding-cycle",
-        type: "Feeding",
-        title: "Feeding cycle",
-        timing: "Every 4 hours",
-        complete: feedingEventsToday.length >= 4,
-        inProgress:
-          feedingEventsToday.length > 0 && feedingEventsToday.length < 4,
-        progressText: `${feedingEventsToday.length} feeding${
-          feedingEventsToday.length === 1 ? "" : "s"
-        } logged today`,
-      },
-      {
-        id: "evening-medications",
-        type: "Medication",
-        title: "Evening medications",
-        timing: "Later today",
-        complete: eveningMedicationComplete,
-        progressText: eveningMedicationComplete
-          ? "Logged"
-          : "Still ahead",
-      },
-    ];
-
-    let foundNext = false;
-
-    return baseItems.map((item) => {
-      if (item.complete) {
-        return { ...item, status: "complete" as const };
-      }
-
-      if (item.inProgress) {
-        foundNext = true;
-        return { ...item, status: "active" as const };
-      }
-
-      if (!foundNext) {
-        foundNext = true;
-        return { ...item, status: "next" as const };
-      }
-
-      return { ...item, status: "later" as const };
-    });
-  }, [
-    morningMedicationComplete,
-    eveningMedicationComplete,
-    feedingEventsToday,
-  ]);
+  const careFlow = useMemo(() => buildCareFlow(todayEvents), [todayEvents]);
 
   const completedCareFlowCount = careFlow.filter(
     (item) => item.status === "complete"
