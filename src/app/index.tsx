@@ -79,6 +79,7 @@ export default function HomeScreen() {
   ];
   const pagerRef = useRef<FlatList<AppTab>>(null);
   const [activeTab, setActiveTab] = useState<AppTab>("home");
+  const [moreOpen, setMoreOpen] = useState(false);
   const [pagerIndex, setPagerIndex] = useState(TAB_ORDER.length);
   const [events, setEvents] = useState<CareEvent[]>(initialEvents);
   const [eventsLoaded, setEventsLoaded] = useState(false);
@@ -348,6 +349,7 @@ export default function HomeScreen() {
   }
 
   function navigateToTab(tab: AppTab, animated = true) {
+    setMoreOpen(false);
     const targetIndex = nearestIndexForTab(tab);
 
     setActiveTab(tab);
@@ -2105,16 +2107,16 @@ export default function HomeScreen() {
     }
   }
 
+  // Keep frequent caregiving actions prominent; move product information to More.
   const navItems: {
-    key: AppTab;
+    key: AppTab | "more";
     label: string;
     icon: string;
   }[] = [
-    { key: "home", label: "Home", icon: "⌂" },
+    { key: "home", label: "Today", icon: "⌂" },
     { key: "activity", label: "Activity", icon: "☷" },
-    { key: "log", label: "Log", icon: "＋" },
-    { key: "roadmap", label: "Roadmap", icon: "→" },
-    { key: "plans", label: "Plans", icon: "◇" },
+    { key: "log", label: "Log Care", icon: "＋" },
+    { key: "more", label: "More", icon: "⋯" },
   ];
 
   return (
@@ -2211,9 +2213,36 @@ export default function HomeScreen() {
         />
       </View>
 
+      {moreOpen && (
+        <View style={styles.moreMenu}>
+          <Text style={styles.moreMenuHeading}>Explore TCH</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="View product roadmap"
+            style={styles.moreMenuItem}
+            onPress={() => navigateToTab("roadmap")}
+          >
+            <Text style={styles.moreMenuItemText}>Product roadmap</Text>
+            <Text style={styles.moreMenuChevron}>›</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="View future plans and subscription concepts"
+            style={styles.moreMenuItem}
+            onPress={() => navigateToTab("plans")}
+          >
+            <Text style={styles.moreMenuItemText}>Future plans</Text>
+            <Text style={styles.moreMenuChevron}>›</Text>
+          </Pressable>
+        </View>
+      )}
+
       <View style={styles.bottomNav}>
         {navItems.map((item) => {
-          const selected = activeTab === item.key;
+          const selected =
+            activeTab === item.key ||
+            (item.key === "more" &&
+              (moreOpen || activeTab === "roadmap" || activeTab === "plans"));
           const isLog = item.key === "log";
 
           return (
@@ -2221,6 +2250,10 @@ export default function HomeScreen() {
               key={item.key}
               accessibilityRole="button"
               accessibilityLabel={item.label}
+              accessibilityState={{
+                selected,
+                ...(item.key === "more" ? { expanded: moreOpen } : {}),
+              }}
               hitSlop={6}
               style={({ pressed }) => [
                 styles.navItem,
@@ -2229,7 +2262,10 @@ export default function HomeScreen() {
               ]}
               onPress={() => {
                 if (item.key === "log") {
+                  setMoreOpen(false);
                   openLog("Feeding");
+                } else if (item.key === "more") {
+                  setMoreOpen((current) => !current);
                 } else {
                   navigateToTab(item.key);
                 }
@@ -2329,8 +2365,8 @@ const styles = StyleSheet.create({
 
   brandDescriptor: {
     color: "#7D837F",
-    fontSize: 10,
-    lineHeight: 13,
+    fontSize: 12,
+    lineHeight: 16,
     fontWeight: "700",
     marginTop: 1,
   },
@@ -2345,7 +2381,7 @@ const styles = StyleSheet.create({
 
   demoBadgeText: {
     color: "#6E716C",
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: "900",
     letterSpacing: 0.8,
   },
@@ -2373,7 +2409,7 @@ const styles = StyleSheet.create({
 
   syncStatusText: {
     color: "#665A8F",
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "800",
   },
 
@@ -2460,7 +2496,7 @@ const styles = StyleSheet.create({
 
   activeChildBadgeText: {
     color: "#FFFFFF",
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: "900",
     letterSpacing: 0.9,
   },
@@ -2500,7 +2536,7 @@ const styles = StyleSheet.create({
   },
 
   profileSignalText: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: "900",
   },
 
@@ -2522,14 +2558,14 @@ const styles = StyleSheet.create({
     color: "#665A8F",
     textAlign: "center",
     lineHeight: 18,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "900",
     marginRight: 7,
   },
 
   dailyEssentialText: {
     color: "#5B6761",
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "800",
   },
 
@@ -2596,7 +2632,7 @@ const styles = StyleSheet.create({
 
   progressPillText: {
     color: "#365B47",
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: "900",
   },
 
@@ -2639,7 +2675,7 @@ const styles = StyleSheet.create({
 
   profileCareFlowEyebrow: {
     color: "#47735D",
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: "900",
     letterSpacing: 0.8,
   },
@@ -2653,7 +2689,7 @@ const styles = StyleSheet.create({
 
   profileCareFlowSubtext: {
     color: "#607068",
-    fontSize: 11,
+    fontSize: 13,
     marginTop: 2,
   },
 
@@ -2684,8 +2720,8 @@ const styles = StyleSheet.create({
 
   expandedSectionHint: {
     color: "#607068",
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: 13,
+    lineHeight: 19,
     marginTop: 2,
     marginBottom: 8,
   },
@@ -2761,8 +2797,8 @@ const styles = StyleSheet.create({
 
   expandedFlowDetail: {
     color: "#647168",
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: 13,
+    lineHeight: 19,
     marginTop: 3,
   },
 
@@ -2773,7 +2809,7 @@ const styles = StyleSheet.create({
   },
 
   expandedFlowStatusText: {
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: "900",
   },
 
@@ -2819,7 +2855,7 @@ const styles = StyleSheet.create({
 
   sectionEyebrow: {
     color: "#7D837F",
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "900",
     letterSpacing: 1.0,
   },
@@ -2834,7 +2870,7 @@ const styles = StyleSheet.create({
 
   sectionHint: {
     color: "#858B87",
-    fontSize: 12,
+    fontSize: 13,
     marginBottom: 3,
   },
 
@@ -2896,7 +2932,7 @@ const styles = StyleSheet.create({
 
   metricLink: {
     color: "#2F6A52",
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "900",
     marginTop: 7,
   },
@@ -2917,7 +2953,7 @@ const styles = StyleSheet.create({
 
   careFlowSummary: {
     color: "#7A827E",
-    fontSize: 11,
+    fontSize: 13,
     marginTop: 2,
   },
 
@@ -2939,7 +2975,7 @@ const styles = StyleSheet.create({
   careFlowRow: {
     flexDirection: "row",
     alignItems: "center",
-    minHeight: 58,
+    minHeight: 66,
     paddingVertical: 8,
   },
 
@@ -2969,24 +3005,30 @@ const styles = StyleSheet.create({
 
   careFlowTitle: {
     color: "#2D3933",
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "900",
   },
 
   careFlowDetail: {
     color: "#77807B",
-    fontSize: 11,
+    fontSize: 13,
     marginTop: 2,
   },
 
   careFlowTimingChip: {
     borderRadius: 999,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
+    minHeight: 32,
+    paddingHorizontal: 9,
+    paddingVertical: 7,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 1,
   },
 
   careFlowTimingText: {
-    fontSize: 9,
+    fontSize: 12,
+    lineHeight: 16,
+    textAlign: "center",
     fontWeight: "900",
   },
 
@@ -3019,7 +3061,7 @@ const styles = StyleSheet.create({
 
   reminderEyebrow: {
     color: "#665A8F",
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: "900",
     letterSpacing: 0.7,
   },
@@ -3033,14 +3075,14 @@ const styles = StyleSheet.create({
 
   reminderText: {
     color: "#746D86",
-    fontSize: 10,
-    lineHeight: 14,
+    fontSize: 12,
+    lineHeight: 17,
     marginTop: 2,
   },
 
   reminderAction: {
     color: "#665A8F",
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: "900",
     marginLeft: 8,
   },
@@ -4026,8 +4068,46 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
 
+  moreMenu: {
+    backgroundColor: "#FFFFFF",
+    borderTopWidth: 1,
+    borderTopColor: "#E3E2DC",
+    paddingHorizontal: 18,
+    paddingTop: 14,
+    paddingBottom: 10,
+    gap: 5,
+  },
+
+  moreMenuHeading: {
+    color: "#365B47",
+    fontSize: 14,
+    fontWeight: "900",
+    marginBottom: 4,
+  },
+
+  moreMenuItem: {
+    minHeight: 48,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#F5F7F3",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+  },
+
+  moreMenuItemText: {
+    color: "#234638",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+
+  moreMenuChevron: {
+    color: "#365B47",
+    fontSize: 22,
+  },
+
   bottomNav: {
-    minHeight: 72,
+    minHeight: 78,
     flexDirection: "row",
     alignItems: "flex-end",
     backgroundColor: "#FFFFFF",
@@ -4040,7 +4120,7 @@ const styles = StyleSheet.create({
 
   navItem: {
     flex: 1,
-    minHeight: 56,
+    minHeight: 60,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -4085,7 +4165,7 @@ const styles = StyleSheet.create({
 
   navLabel: {
     color: "#777F7A",
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: "800",
     marginTop: 2,
   },
