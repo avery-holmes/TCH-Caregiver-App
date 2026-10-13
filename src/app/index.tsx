@@ -2366,7 +2366,7 @@ const styles = StyleSheet.create({
   brandDescriptor: {
     color: "#7D837F",
     fontSize: 12,
-    lineHeight: 13,
+    lineHeight: 16,
     fontWeight: "700",
     marginTop: 1,
   },
@@ -2721,7 +2721,7 @@ const styles = StyleSheet.create({
   expandedSectionHint: {
     color: "#607068",
     fontSize: 13,
-    lineHeight: 16,
+    lineHeight: 19,
     marginTop: 2,
     marginBottom: 8,
   },
@@ -2798,7 +2798,7 @@ const styles = StyleSheet.create({
   expandedFlowDetail: {
     color: "#647168",
     fontSize: 13,
-    lineHeight: 16,
+    lineHeight: 19,
     marginTop: 3,
   },
 
@@ -3076,7 +3076,7 @@ const styles = StyleSheet.create({
   reminderText: {
     color: "#746D86",
     fontSize: 12,
-    lineHeight: 14,
+    lineHeight: 17,
     marginTop: 2,
   },
 
