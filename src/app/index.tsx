@@ -44,6 +44,7 @@ import {
 import type { CareEvent } from "@/domain/careEvent";
 import { styles } from "@/theme/appStyles";
 import { buildCareFlow } from "@/features/care-flow/buildCareFlow";
+import { CareEventCard } from "@/features/activity/CareEventCard";
 
 type AppTab = "home" | "activity" | "log" | "roadmap" | "plans";
 
@@ -506,50 +507,13 @@ export default function HomeScreen() {
   }
 
   function renderEventCard(event: CareEvent, detailed = false) {
-    const meta = eventMeta[event.type] ?? eventMeta.Note;
-
     return (
-      <Animated.View
+      <CareEventCard
         key={event.id}
-        entering={FadeInDown.duration(260)}
-        layout={LinearTransition.duration(180)}
-      >
-        <Pressable
-          style={({ pressed }) => [
-            styles.eventCard,
-            detailed && styles.eventCardDetailed,
-            pressed && styles.pressedSurface,
-          ]}
-          onPress={() => setSelectedEventId(event.id)}
-        >
-          <View
-            style={[
-              styles.eventIconWrap,
-              { backgroundColor: meta.tint },
-            ]}
-          >
-            <Text style={styles.eventIcon}>{meta.icon}</Text>
-          </View>
-
-          <View style={styles.eventCopy}>
-            <View style={styles.eventTopRow}>
-              <Text style={styles.eventType}>{event.type}</Text>
-              <Text style={styles.eventTime}>{event.time}</Text>
-            </View>
-
-            <Text
-              style={styles.eventDetails}
-              numberOfLines={detailed ? undefined : 2}
-            >
-              {event.details}
-            </Text>
-
-            <Text style={styles.eventCaregiver}>
-              Logged by {event.caregiver}
-            </Text>
-          </View>
-        </Pressable>
-      </Animated.View>
+        event={event}
+        detailed={detailed}
+        onSelect={setSelectedEventId}
+      />
     );
   }
 
