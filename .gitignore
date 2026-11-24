@@ -1,5 +1,8 @@
 # Dependencies
 node_modules/
+.tools/
+server/target/
+server/.data/
 
 # Expo / build output
 .expo/
