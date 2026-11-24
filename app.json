@@ -1,13 +1,23 @@
 {
   "expo": {
-    "name": "TCH",
+    "name": "TCH Demo",
     "slug": "tch-caregiver-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "tch",
     "userInterfaceStyle": "automatic",
-    "ios": {},
+    "ios": {
+      "bundleIdentifier": "com.averyholmes.tch.demo",
+      "buildNumber": "1"
+    },
     "android": {
+      "package": "com.averyholmes.tch.demo",
+      "versionCode": 1,
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "web": {
@@ -15,7 +25,8 @@
     },
     "plugins": [
       "expo-router",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-splash-screen"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -11,6 +11,13 @@
       ]
     }
   },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "web-build",
+    "android",
+    "ios"
+  ],
   "include": [
     "**/*.ts",
     "**/*.tsx",

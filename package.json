@@ -3,18 +3,18 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
-    "@expo/ui": "~57.0.17",
+    "@expo/ui": "~57.0.26",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "9.1.0",
-    "expo": "~57.0.21",
+    "expo": "~57.0.31",
     "expo-constants": "~57.0.17",
     "expo-device": "~57.0.1",
     "expo-font": "~57.0.3",
     "expo-glass-effect": "~57.0.2",
     "expo-image": "~57.0.4",
-    "expo-linking": "~57.0.9",
-    "expo-router": "~57.0.20",
-    "expo-splash-screen": "~57.0.8",
+    "expo-linking": "~57.0.13",
+    "expo-router": "~57.0.29",
+    "expo-splash-screen": "~57.0.10",
     "expo-status-bar": "~57.0.1",
     "expo-symbols": "~57.0.2",
     "expo-system-ui": "~57.0.3",
@@ -33,7 +33,7 @@
     "@types/jest": "29.5.14",
     "@types/react": "~19.2.2",
     "jest": "~29.7.0",
-    "jest-expo": "~57.0.5",
+    "jest-expo": "~57.0.6",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -42,10 +42,18 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "test": "jest"
+    "test": "jest",
+    "check:epic-sandbox": "node scripts/check-epic-sandbox.mjs"
   },
   "jest": {
-   "preset": "jest-expo"
+    "preset": "jest-expo",
+    "modulePathIgnorePatterns": [
+      "<rootDir>/dist/"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "<rootDir>/dist/"
+    ]
   },
   "private": true
 }

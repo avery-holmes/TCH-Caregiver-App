@@ -61,6 +61,15 @@ describe("loadCareEvents", () => {
     await expect(loadCareEvents()).rejects.toBe(error);
     expect(storage.setItem).not.toHaveBeenCalled();
   });
+
+  test.each(["", "null", "{}", '[{"id":1}]', '[{"id":"1","type":"Note"}]'])(
+    "rejects invalid stored event data without overwriting it: %s",
+    async (saved) => {
+      storage.getItem.mockResolvedValue(saved);
+      await expect(loadCareEvents()).rejects.toThrow();
+      expect(storage.setItem).not.toHaveBeenCalled();
+    }
+  );
 });
 
 describe("saveCareEvents", () => {

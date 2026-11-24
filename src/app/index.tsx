@@ -2,13 +2,11 @@ import {
   dateFromKey,
   getDateKey,
   getTodayKey,
-  normalizeLegacyEventDates,
   shiftDate,
 } from "@/utils/dateUtils";
-import DateTimePicker, {
-  type DateTimePickerEvent,
-} from "@react-native-community/datetimepicker";
-import { useEffect, useMemo, useRef, useState } from "react";
+import type { DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import EventTimePicker from "@/components/EventTimePicker";
+import { useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -35,15 +33,18 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { eventMeta, eventTypes } from "@/data/careEventCatalog";
-import { medicationOptions } from "@/data/demoCarePlan";
+import { createDemoEvents } from "@/data/demoCarePlan";
+import type { DemoProfile } from "@/domain/profile";
+import { getProfileInitials } from "@/domain/profile";
+import { ProfileGate } from "@/features/profile/ProfileGate";
+import { useCareEvents } from "@/features/care-events/useCareEvents";
+import { CareStorageStatus } from "@/features/care-events/CareStorageStatus";
+import { NoticeDialog, type Notice } from "@/components/NoticeDialog";
+import PagerPage from "@/components/PagerPage";
 import {
   roadmapPhases,
   subscriptionTiers,
 } from "@/data/productRoadmap";
-import {
-  loadCareEvents,
-  saveCareEvents,
-} from "@/data/storage/careEventRepository";
 import type { CareEvent } from "@/domain/careEvent";
 
 type AppTab = "home" | "activity" | "log" | "roadmap" | "plans";
@@ -51,26 +52,12 @@ type AppTab = "home" | "activity" | "log" | "roadmap" | "plans";
 const TAB_ORDER: AppTab[] = ["home", "activity", "log", "roadmap", "plans"];
 const LOOPED_TABS: AppTab[] = [...TAB_ORDER, ...TAB_ORDER, ...TAB_ORDER];
 
-const initialEvents: CareEvent[] = [
-  {
-    id: 1,
-    type: "Feeding",
-    time: "8:45 AM",
-    details: "Pump feeding • Dose 250 mL • Rate 500 mL/hr",
-    caregiver: "Caregiver A",
-    date: getTodayKey(),
-  },
-  {
-    id: 2,
-    type: "Medication",
-    time: "9:15 AM",
-    details: "Morning medication routine completed",
-    caregiver: "Caregiver B",
-    date: getTodayKey(),
-  },
-];
+export default function App() {
+  return <ProfileGate>{(profile) => <HomeScreen profile={profile} />}</ProfileGate>;
+}
 
-export default function HomeScreen() {
+function HomeScreen({ profile }: { profile: DemoProfile }) {
+  const { feeding, medications: medicationOptions } = profile.carePlan;
   const { width: pageWidth } = useWindowDimensions();
   const isTablet = pageWidth >= 700;
   const pageContentStyle = [
@@ -80,10 +67,11 @@ export default function HomeScreen() {
   const pagerRef = useRef<FlatList<AppTab>>(null);
   const [activeTab, setActiveTab] = useState<AppTab>("home");
   const [pagerIndex, setPagerIndex] = useState(TAB_ORDER.length);
-  const [events, setEvents] = useState<CareEvent[]>(initialEvents);
-  const [eventsLoaded, setEventsLoaded] = useState(false);
+  const { events, status: storageStatus, addEvent, retry, refreshEvents } =
+    useCareEvents(() => createDemoEvents(profile));
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshStatus, setRefreshStatus] = useState<string | null>(null);
+  const [webNotice, setWebNotice] = useState<Notice | null>(null);
   const [selectedActivityDate, setSelectedActivityDate] =
     useState(getTodayKey());
   const [calendarWeekOffset, setCalendarWeekOffset] = useState(0);
@@ -94,16 +82,16 @@ export default function HomeScreen() {
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
 
   const [selectedType, setSelectedType] = useState("Feeding");
-  const [caregiver, setCaregiver] = useState("Caregiver A");
+  const [caregiver, setCaregiver] = useState(profile.identity.primaryCaregiver);
   const [eventTime, setEventTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
 
-  const [feedingDose, setFeedingDose] = useState("250");
-  const [feedingRate, setFeedingRate] = useState("500");
+  const [feedingDose, setFeedingDose] = useState(feeding.doseMl);
+  const [feedingRate, setFeedingRate] = useState(feeding.rateMlPerHour);
   const [feedingNotes, setFeedingNotes] = useState("");
 
   const [medicationDropdownOpen, setMedicationDropdownOpen] = useState(false);
-  const [selectedMedication, setSelectedMedication] = useState("Medication A");
+  const [selectedMedication, setSelectedMedication] = useState(medicationOptions[0].name);
   const [medicationPeriod, setMedicationPeriod] =
     useState<"Morning" | "Evening">("Morning");
   const [medicationNotes, setMedicationNotes] = useState("");
@@ -119,39 +107,6 @@ export default function HomeScreen() {
   const [diastolic, setDiastolic] = useState("");
 
   const [noteText, setNoteText] = useState("");
-
-  useEffect(() => {
-    async function loadSavedEvents() {
-      try {
-        const savedEvents = await loadCareEvents();
-        if (savedEvents) {
-          setEvents(normalizeLegacyEventDates(savedEvents));
-        }
-      } catch (error) {
-        console.error("Unable to load saved care events:", error);
-      } finally {
-        setEventsLoaded(true);
-      }
-    }
-
-    loadSavedEvents();
-  }, []);
-
-  useEffect(() => {
-    if (!eventsLoaded) {
-      return;
-    }
-
-    async function saveEvents() {
-      try {
-        await saveCareEvents(events);
-      } catch (error) {
-        console.error("Unable to save care events:", error);
-      }
-    }
-
-    saveEvents();
-  }, [events, eventsLoaded]);
 
   const todayEvents = useMemo(
     () => events.filter((event) => event.date === getTodayKey()),
@@ -274,10 +229,10 @@ export default function HomeScreen() {
         id: "feeding-cycle",
         type: "Feeding",
         title: "Feeding cycle",
-        timing: "Every 4 hours",
-        complete: feedingEventsToday.length >= 4,
+        timing: `Every ${feeding.intervalHours} hours`,
+        complete: feedingEventsToday.length >= feeding.dailyTarget,
         inProgress:
-          feedingEventsToday.length > 0 && feedingEventsToday.length < 4,
+          feedingEventsToday.length > 0 && feedingEventsToday.length < feeding.dailyTarget,
         progressText: `${feedingEventsToday.length} feeding${
           feedingEventsToday.length === 1 ? "" : "s"
         } logged today`,
@@ -317,6 +272,7 @@ export default function HomeScreen() {
     morningMedicationComplete,
     eveningMedicationComplete,
     feedingEventsToday,
+    feeding,
   ]);
 
   const completedCareFlowCount = careFlow.filter(
@@ -385,8 +341,13 @@ export default function HomeScreen() {
     }
   }
 
+  function showNotice(title: string, message: string) {
+    if (Platform.OS === "web") setWebNotice({ title, message });
+    else Alert.alert(title, message);
+  }
+
   function previewCareReminder() {
-    Alert.alert(
+    showNotice(
       "Care reminder preview",
       `${nextCareItem.title} is the next care item. In a shared-care release, authorized caregivers could receive a push notification when the configured due-time threshold is reached.`
     );
@@ -399,7 +360,7 @@ export default function HomeScreen() {
 
     navigateToTab("home");
     setIsRefreshing(true);
-    setRefreshStatus("Checking for caregiver updates…");
+    setRefreshStatus("Reloading history on this device…");
 
     logoRotation.value = 0;
     logoRotation.value = withTiming(720, {
@@ -408,15 +369,9 @@ export default function HomeScreen() {
     });
 
     try {
-      const savedEvents = await loadCareEvents();
-
-      const refreshedEvents = savedEvents
-        ? normalizeLegacyEventDates(savedEvents)
-        : events;
+      const refreshedEvents = await refreshEvents();
 
       await new Promise((resolve) => setTimeout(resolve, 650));
-
-      setEvents(refreshedEvents);
 
       const caregiverCount = new Set(
         refreshedEvents
@@ -439,11 +394,11 @@ export default function HomeScreen() {
   }
 
   function resetCategoryFields() {
-    setFeedingDose("250");
-    setFeedingRate("500");
+    setFeedingDose(feeding.doseMl);
+    setFeedingRate(feeding.rateMlPerHour);
     setFeedingNotes("");
     setMedicationDropdownOpen(false);
-    setSelectedMedication("Medication A");
+    setSelectedMedication(medicationOptions[0].name);
     setMedicationPeriod("Morning");
     setMedicationNotes("");
     setDiaperType("Wet");
@@ -460,7 +415,7 @@ export default function HomeScreen() {
   function openLog(type = "Feeding") {
     resetCategoryFields();
     setSelectedType(type);
-    setCaregiver("Caregiver A");
+    setCaregiver(profile.identity.primaryCaregiver);
     setEventTime(new Date());
     setShowTimePicker(false);
     navigateToTab("log");
@@ -541,7 +496,7 @@ export default function HomeScreen() {
   function saveEvent() {
     if (selectedType === "Feeding") {
       if (!feedingDose.trim() || !feedingRate.trim()) {
-        Alert.alert(
+        showNotice(
           "Missing Feeding Details",
           "Enter both the pump dose and rate before saving."
         );
@@ -558,7 +513,7 @@ export default function HomeScreen() {
         (systolic.trim() && diastolic.trim());
 
       if (!hasVital) {
-        Alert.alert(
+        showNotice(
           "Missing Vitals",
           "Enter at least one vital sign before saving."
         );
@@ -567,12 +522,12 @@ export default function HomeScreen() {
     }
 
     if (selectedType === "Note" && !noteText.trim()) {
-      Alert.alert("Missing Note", "Enter a note before saving.");
+      showNotice("Missing Note", "Enter a note before saving.");
       return;
     }
 
     if (!caregiver.trim()) {
-      Alert.alert(
+      showNotice(
         "Missing Caregiver",
         "Enter the caregiver name before saving."
       );
@@ -591,7 +546,7 @@ export default function HomeScreen() {
       date: getTodayKey(),
     };
 
-    setEvents((current) => [newEvent, ...current]);
+    addEvent(newEvent);
     setSelectedEventId(newEvent.id);
     setSelectedActivityDate(newEvent.date);
     setCalendarWeekOffset(0);
@@ -666,7 +621,7 @@ export default function HomeScreen() {
                 isTablet && styles.profileImageTablet,
               ]}
             >
-              <Text style={styles.profileImageInitials}>DC</Text>
+              <Text style={styles.profileImageInitials}>{getProfileInitials(profile.identity.childName)}</Text>
             </View>
 
             <View style={styles.profileCopy}>
@@ -674,7 +629,7 @@ export default function HomeScreen() {
                 <Text style={styles.activeChildBadgeText}>ACTIVE CHILD</Text>
               </View>
 
-              <Text style={styles.profileName}>Demo Child</Text>
+              <Text style={styles.profileName}>{profile.identity.childName}</Text>
               <Text style={styles.profileSubtext}>
                 {profileExpanded
                   ? "Hide care-plan details"
@@ -760,8 +715,8 @@ export default function HomeScreen() {
                     </Text>
                   </View>
                   <Text style={styles.carePlanValue}>
-                    Clear the volume total first. Dose 250 mL • Rate 500 mL/hr •
-                    Continue feedings every 4 hours.
+                    Clear the volume total first. Dose {feeding.doseMl} mL • Rate {feeding.rateMlPerHour} mL/hr •
+                    Continue feedings every {feeding.intervalHours} hours.
                   </Text>
                 </View>
 
@@ -771,7 +726,7 @@ export default function HomeScreen() {
                     <Text style={styles.carePlanLabel}>Morning medications</Text>
                   </View>
                   <Text style={styles.carePlanValue}>
-                    Medication A • Medication B • Medication C
+                    {medicationOptions.map((medication) => medication.name).join(" • ")}
                   </Text>
                 </View>
 
@@ -781,7 +736,7 @@ export default function HomeScreen() {
                     <Text style={styles.carePlanLabel}>Evening medications</Text>
                   </View>
                   <Text style={styles.carePlanValue}>
-                    Medication A • Medication B • Medication C
+                    {medicationOptions.map((medication) => medication.name).join(" • ")}
                   </Text>
                 </View>
               </View>
@@ -1363,7 +1318,7 @@ export default function HomeScreen() {
             >
               FEEDING PUMP
             </Text>
-            <Text style={styles.featureTitle}>Every 4 hours</Text>
+            <Text style={styles.featureTitle}>Every {feeding.intervalHours} hours</Text>
             <Text style={styles.featureBody}>
               Morning reset: clear the volume total. Demo settings are prefilled.
             </Text>
@@ -1377,7 +1332,7 @@ export default function HomeScreen() {
                 value={feedingDose}
                 onChangeText={setFeedingDose}
                 keyboardType="decimal-pad"
-                placeholder="250"
+                placeholder={feeding.doseMl}
                 placeholderTextColor="#8A908C"
               />
             </View>
@@ -1389,7 +1344,7 @@ export default function HomeScreen() {
                 value={feedingRate}
                 onChangeText={setFeedingRate}
                 keyboardType="decimal-pad"
-                placeholder="500"
+                placeholder={feeding.rateMlPerHour}
                 placeholderTextColor="#8A908C"
               />
             </View>
@@ -1851,11 +1806,13 @@ export default function HomeScreen() {
             <View style={styles.timePickerHeader}>
               <Text style={styles.timePickerTitle}>Adjust event time</Text>
               <Text style={styles.timePickerHint}>
-                Swipe the hour, minute and AM/PM wheels up or down.
+                {Platform.OS === "web"
+                  ? "Choose the hour and minute."
+                  : "Swipe the hour, minute and AM/PM wheels up or down."}
               </Text>
             </View>
 
-            <DateTimePicker
+            <EventTimePicker
               value={eventTime}
               mode="time"
               display={Platform.OS === "ios" ? "spinner" : "default"}
@@ -2117,6 +2074,14 @@ export default function HomeScreen() {
     { key: "plans", label: "Plans", icon: "◇" },
   ];
 
+  if (storageStatus === "loading" || storageStatus === "load-error") {
+    return (
+      <SafeAreaView style={styles.container}>
+        <CareStorageStatus status={storageStatus} onRetry={retry} />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.appHeader}>
@@ -2152,9 +2117,11 @@ export default function HomeScreen() {
         </Pressable>
 
         <View style={styles.demoBadge}>
-          <Text style={styles.demoBadgeText}>BETA</Text>
+          <Text style={styles.demoBadgeText}>DEMO</Text>
         </View>
       </View>
+
+      <CareStorageStatus status={storageStatus} onRetry={retry} />
 
       {refreshStatus && (
         <Animated.View entering={FadeIn.duration(180)} style={styles.syncStatusBar}>
@@ -2171,6 +2138,8 @@ export default function HomeScreen() {
 
       <View style={styles.contentArea}>
         <FlatList
+          // Remount measured cells when the viewport changes, keeping the selected page.
+          key={pageWidth}
           ref={pagerRef}
           data={LOOPED_TABS}
           horizontal
@@ -2179,7 +2148,7 @@ export default function HomeScreen() {
           decelerationRate="fast"
           disableIntervalMomentum
           showsHorizontalScrollIndicator={false}
-          initialScrollIndex={TAB_ORDER.length}
+          initialScrollIndex={pagerIndex}
           getItemLayout={(_, index) => ({
             length: pageWidth,
             offset: pageWidth * index,
@@ -2187,12 +2156,9 @@ export default function HomeScreen() {
           })}
           keyExtractor={(item, index) => `${item}-${index}`}
           renderItem={({ item, index }) => (
-            <View
-              style={[styles.pagerPage, { width: pageWidth }]}
-              pointerEvents={index === pagerIndex ? "auto" : "none"}
-            >
+            <PagerPage width={pageWidth} active={index === pagerIndex}>
               {renderTab(item)}
-            </View>
+            </PagerPage>
           )}
           onMomentumScrollEnd={(event) =>
             handlePagerMomentumEnd(event.nativeEvent.contentOffset.x)
@@ -2210,6 +2176,8 @@ export default function HomeScreen() {
           windowSize={3}
         />
       </View>
+
+      <NoticeDialog notice={webNotice} onClose={() => setWebNotice(null)} />
 
       <View style={styles.bottomNav}>
         {navItems.map((item) => {
@@ -2380,11 +2348,6 @@ const styles = StyleSheet.create({
   contentArea: {
     flex: 1,
     overflow: "hidden",
-  },
-
-  pagerPage: {
-    flex: 1,
-    backgroundColor: "#F5F2EA",
   },
 
   screenContent: {
