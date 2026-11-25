@@ -70,11 +70,23 @@ The Jest suite uses the `jest-expo` preset and covers date formatting, date shif
 
 Profile and feature tests also cover alias validation, first-run/returning-user setup, storage retries, serialized event writes and protection against stale refreshes overwriting unsaved changes.
 
-Run TypeScript checking separately with `npm run typecheck`. GitHub Actions runs both type-checking and `npm test -- --ci --runInBand` on pushes to `main` and pull requests targeting `main`.
+Run TypeScript checking separately with `npm run typecheck`. GitHub Actions runs type-checking, `npm test -- --ci --runInBand`, and Java API verification on pushes to `main` and pull requests.
 
 ## Family walkthrough milestone
 
-On first launch, a lightweight setup screen saves a synthetic child alias and two caregiver aliases locally. You can keep the supplied demo values. Returning users resume without repeating setup. Existing event history is preserved. Feeding and medication defaults come from the typed demo profile configuration in `src/data/demoCarePlan.ts`.
+### Version 2 account/profile increment
+
+The new **Caregiver account preview** connects to a local Java 21 service for test-account registration/sign-in, creating/editing one child with starting details, and an optional protected photo. The child profile reloads after signing out/in. This is local synthetic development: caregiver invitations, shared care-event logging and a hosted service remain unfinished. Existing offline care history is kept separate and is not uploaded.
+
+Run `.\scripts\run-server.ps1` in one PowerShell terminal and `npm run web -- --port 8083` in another. Java 21 is required; the helper uses the project-local portable JDK if available. Open `http://localhost:8083/` and choose **Caregiver account preview**. See [`server/README.md`](server/README.md) for setup, the test workflow and session/photo limits, and [ADR 0001](docs/decisions/0001-java-account-profile-increment.md) for the Java decision and its tradeoffs.
+
+Run API tests with `.\scripts\run-server.ps1 -Task test` or the Maven wrapper in `server/`. CI checks both the Java API and the TypeScript/Jest app. Phone installation and native session/photo testing remain separate gates.
+
+See the [November 25 validation record](docs/ACCOUNT-PROFILE-VALIDATION-2026-11-25.md) for the 109 app tests, 17 Java tests, browser/HTTP walkthrough, unresolved dependency findings and remaining beta work.
+
+### Offline demo
+
+Choose **Open offline care demo** to use the device-local walkthrough. On first launch, a lightweight setup screen saves a synthetic child alias and two caregiver aliases locally. Returning demo users resume without repeating setup. Existing event history is preserved. Feeding and medication defaults come from the typed demo profile configuration in `src/data/demoCarePlan.ts`.
 
 This is a demo walkthrough foundation, with one profile per device. Accounts, shared-care sync and real-data readiness remain future work. See [`docs/FAMILY-TESTING.md`](docs/FAMILY-TESTING.md) for the test script and remaining beta gates. Use fictional aliases and events only.
 

@@ -2,6 +2,8 @@
 
 The next milestone is a small, synthetic-data walkthrough with family testers. It is separate from a real-data or shared-care beta. This file tracks local implementation and remaining release work for Issues #4, #5, #6, #11 and #13; it does not record a release approval.
 
+November 25 update: the local Java account/profile increment adds separate sign-in and child enrollment with optional private photos. See [`server/README.md`](../server/README.md). It is not yet the multi-caregiver beta: invitations, shared events, hosted deployment and physical-device validation remain open. The script below still describes the separate offline demo.
+
 ## Current walkthrough scope
 
 - One synthetic child profile per device, with two fictional caregiver aliases.

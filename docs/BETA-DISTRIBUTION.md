@@ -2,6 +2,8 @@
 
 Both platforms are targets. This is a synthetic-data walkthrough, not a real-data shared-care release. `eas.json` contains an internal `preview` profile: an Android APK and a physical-device iOS ad hoc build. No cloud build, upload, signing configuration or store submission has been performed.
 
+November 25 update: account/profile screens now depend on the separate Java service, which is excluded from EAS app uploads. The loopback API default works only for local development, not a tester's physical phone. Account-enabled distribution must wait for a reachable reviewed HTTPS environment and native session/photo validation. The existing offline demo remains separately usable. See [`server/README.md`](../server/README.md).
+
 Local validation: 89 Jest tests across eight suites and TypeScript pass, including the separate sandbox adapter. Expo has compiled the iOS, Android and web JavaScript bundles with bytecode disabled. This checks bundling; it does not produce an installable APK/IPA or verify native compilation/signing. See `STABILIZATION-REVIEW.md` for browser checks.
 
 ## Account and configuration status
