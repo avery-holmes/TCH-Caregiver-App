@@ -64,6 +64,10 @@ The goal is to separate UI, domain rules, persistence, and future network concer
 
 ## Future backend boundary
 
+The first local account/profile boundary now lives in `server/` (Java 21, Spring Boot/Security, JDBC/H2). `src/data/api/betaApi.ts` owns credentialed requests and CSRF; `src/features/beta/` owns sign-in, enrollment and private-photo screens. The account preview does not mount the offline demo's profile/event repositories. Owner identity is assigned on the server, not accepted from the client.
+
+This increment implements owner-only child/profile access, not care circles or shared care events. See [ADR 0001](decisions/0001-java-account-profile-increment.md) and [`server/README.md`](../server/README.md). A production/hosted backend is still future work.
+
 A production shared-care version should introduce a backend through explicit repository/service interfaces rather than placing API calls directly in screens. Authentication, authorization, audit logging, and secure data handling should be designed before introducing real shared-care data.
 
 See [`SHARED-CARE-DESIGN.md`](SHARED-CARE-DESIGN.md) for the draft identity/permission/sync boundary. The separate `src/integrations/epic/` adapter is restricted to Epic's synthetic sandbox, uses injected in-memory authorized session material, and does not persist or merge external patient summaries into care events. Its login provider and production integration are not implemented; see [`EPIC-INTEGRATION.md`](EPIC-INTEGRATION.md).

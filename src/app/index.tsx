@@ -46,6 +46,7 @@ import {
   subscriptionTiers,
 } from "@/data/productRoadmap";
 import type { CareEvent } from "@/domain/careEvent";
+import { AppEntry } from "@/features/beta/AppEntry";
 
 type AppTab = "home" | "activity" | "log" | "roadmap" | "plans";
 
@@ -53,7 +54,7 @@ const TAB_ORDER: AppTab[] = ["home", "activity", "log", "roadmap", "plans"];
 const LOOPED_TABS: AppTab[] = [...TAB_ORDER, ...TAB_ORDER, ...TAB_ORDER];
 
 export default function App() {
-  return <ProfileGate>{(profile) => <HomeScreen profile={profile} />}</ProfileGate>;
+  return <AppEntry><ProfileGate>{(profile) => <HomeScreen profile={profile} />}</ProfileGate></AppEntry>;
 }
 
 function HomeScreen({ profile }: { profile: DemoProfile }) {

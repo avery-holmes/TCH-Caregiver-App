@@ -1,6 +1,6 @@
 # Shared-care boundary: design draft
 
-This is a reviewable design for Issue #5, not implemented cloud functionality. Requirements below define intended behavior; backend, identity vendor, database and hosting choices remain open. Epic sandbox experimentation is documented separately in `EPIC-INTEGRATION.md`.
+This is a reviewable design for Issue #5, not implemented cloud functionality. Requirements below define intended behavior. The local Java owner-only account/profile increment in Issue #16 is recorded in [ADR 0001](decisions/0001-java-account-profile-increment.md); it does not implement memberships, invitations or shared events. Hosted identity, database and deployment choices remain open. Epic sandbox experimentation is documented separately in `EPIC-INTEGRATION.md`.
 
 ## Identity and relationships
 
